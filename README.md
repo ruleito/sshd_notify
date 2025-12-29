@@ -17,7 +17,20 @@ This project implements a multi-layered security approach: **Fail2Ban** for brut
     echo 'TOKEN="your_bot_token"' >> /etc/environment
     echo 'CHAT_ID="your_chat_id"' >> /etc/environment
     ```
-2.  **Notification Script** (`/usr/local/bin/ssh_tg_notify.sh`):
+3. SSH hardering
+# Disable password login and enable PAM
+```bash
+    sed -i 's/^#\?\s*PasswordAuthentication\s\+.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sed -i 's/^#\?\s*PubkeyAuthentication\s\+.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/^#\?\s*UsePAM\s\+.*/UsePAM yes/' /etc/ssh/sshd_config
+    systemctl restart sshd
+```
+4.  PAM Activation 
+    ** add this string to end file `/etc/pam.d/sshd`
+    ```bash
+    session    optional     pam_exec.so /usr/local/bin/ssh_tg_notify.sh
+    ```
+3.  **Notification Script** (`/usr/local/bin/ssh_tg_notify.sh`):
     The script checks `PAM_TYPE` to avoid sending alerts during logout.
     ```bash
     #!/bin/bash
