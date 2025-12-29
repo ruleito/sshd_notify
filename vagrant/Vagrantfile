@@ -4,12 +4,13 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
       set -e
-      echo 'TOKEN="PUT_YOUR_BOT_TOKEN_HERE"' >> /etc/environment
-      echo 'CHAT_ID="PUT_YOUR_CHAT_ID_HERE"' >> /etc/environment
+      echo 'TOKEN="PUT_YOUR_BOT_TOKEN_HERE"' >> /etc/sshd_notify
+      echo 'CHAT_ID="PUT_YOUR_CHAT_ID_HERE"' >> /etc/sshd_notify
       apt-get update
       apt-get install -y curl
       cat << 'EOF' > /usr/local/bin/ssh_tg_notify.sh
   #!/bin/bash
+  [ -f /etc/sshd_notify] && . /etc/sshd_notify
   if [ "$PAM_TYPE" != "close_session" ]; then
       HOST=$(hostname)
       MSG="*Vagrant SSH Alert*%0A*Server:* $HOST%0A*User:* $PAM_USER%0A*IP:* $PAM_RHOST"
