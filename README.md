@@ -27,7 +27,7 @@ This project implements a multi-layered security approach: **Fail2Ban** for brut
         vim /etc/fail2ban/jail.d/sshd.local
     ```
 
-        and paste this config
+    and paste this config
 
     ```bash
         [sshd]
