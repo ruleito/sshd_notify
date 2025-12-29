@@ -137,3 +137,13 @@ Vagrant allows you to test the entire flow (Fail2Ban, PAM, and Telegram) in a sa
     ```
 4.  **Verification**:
     Check your Telegram. You should receive a message with the server hostname and your login details. If it fails, inspect the logs: `journalctl -u ssh` or check the environment: `cat /etc/environment`.
+
+## NOTICE: 
+you can use any messanger for send message, need read api and cook query 
+
+example: 
+yandex: https://yandex.ru/dev/messenger/doc/ru/api-requests/message-send-text
+
+rocketchat: https://developer.rocket.chat/apidocs/send-message
+
+slack: https://docs.slack.dev/reference/methods/chat.postMessage/
