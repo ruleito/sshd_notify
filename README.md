@@ -26,7 +26,7 @@ This project implements a multi-layered security approach: **Fail2Ban** for brut
     systemctl restart sshd
 ```
 4.  PAM Activation 
-    ** add this string to end file `/etc/pam.d/sshd`
+    **add this string to end file** `/etc/pam.d/sshd` 
     ```bash
     session    optional     pam_exec.so /usr/local/bin/ssh_tg_notify.sh
     ```
