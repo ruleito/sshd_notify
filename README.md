@@ -26,7 +26,9 @@ This project implements a multi-layered security approach: **Fail2Ban** for brut
     ```bash
         vim /etc/fail2ban/jail.d/sshd.local
     ```
+
         and paste this config
+
     ```bash
         [sshd]
         enabled = true
@@ -37,11 +39,15 @@ This project implements a multi-layered security approach: **Fail2Ban** for brut
         bantime  = 1h       ; bantime 
         ignoreip = 127.0.0.1/8 ::1 192.168.0.0/16
     ```
+
     restart service
+
     ```bash 
     systemctl restart fail2ban.service
     ```
+
     check service
+    
     ```bash 
     systemctl is-active fail2ban.service
     ```
