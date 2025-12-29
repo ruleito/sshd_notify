@@ -44,7 +44,9 @@ Vagrant allows you to test the entire flow (Fail2Ban, PAM, and Telegram) in a sa
     ```bash
     mkdir ssh-notify-test && cd ssh-notify-test
     ```
-2.  **Create the Vagrantfile**:
+2. **clone repo**
+    ```bash git@github.com:ruleito/sshd_notify.git ```
+3.  **Create the Vagrantfile**:
     Save the following code as `Vagrantfile`. **Make sure to replace the TOKEN and CHAT_ID placeholders.**
     ```ruby
     Vagrant.configure("2") do |config|
