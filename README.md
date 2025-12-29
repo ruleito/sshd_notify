@@ -17,8 +17,37 @@ This project implements a multi-layered security approach: **Fail2Ban** for brut
     echo 'TOKEN="your_bot_token"' >> /etc/sshd_notify
     echo 'CHAT_ID="your_chat_id"' >> /etc/sshd_notify
     ```
+2. Configure fail2ban
+    install Fail2Ban
+    ```bash 
+    apt install fail2ban
+    ```
+    next step: add conf
+    ```bash
+        vim /etc/fail2ban/jail.d/sshd.local
+    ```
+        and paste this config
+    ```bash
+        [sshd]
+        enabled = true
+        port    = ssh
+        filter  = sshd
+        maxretry = 3        ; ban 3 lose
+        findtime = 10m      ; windows 
+        bantime  = 1h       ; bantime 
+        ignoreip = 127.0.0.1/8 ::1 192.168.0.0/16
+    ```
+    restart service
+    ```bash 
+    systemctl restart fail2ban.service
+    ```
+    check service
+    ```bash 
+    systemctl is-active fail2ban.service
+    ```
 3. SSH hardering
-# Disable password login and enable PAM
+
+ **Disable password login and enable PAM**
 ```bash
     sed -i 's/^#\?\s*PasswordAuthentication\s\+.*/PasswordAuthentication no/' /etc/ssh/sshd_config
     sed -i 's/^#\?\s*PubkeyAuthentication\s\+.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
@@ -73,11 +102,12 @@ Vagrant allows you to test the entire flow (Fail2Ban, PAM, and Telegram) in a sa
             set -e
             echo 'TOKEN="PUT_YOUR_BOT_TOKEN_HERE"' >> /etc/sshd_notify
             echo 'CHAT_ID="PUT_YOUR_CHAT_ID_HERE"' >> /etc/sshd_notify
+            chmod 600 /etc/sshd_notify && chown root:root /etc/sshd_notify
             apt-get update
             apt-get install -y curl
             cat << 'EOF' > /usr/local/bin/ssh_tg_notify.sh
         #!/bin/bash
-        [ -f /etc/sshd_notify] && . /etc/sshd_notify
+        [ -f /etc/sshd_notify ] && . /etc/sshd_notify
         if [ "$PAM_TYPE" != "close_session" ]; then
             HOST=$(hostname)
             MSG="*Vagrant SSH Alert*%0A*Server:* $HOST%0A*User:* $PAM_USER%0A*IP:* $PAM_RHOST"
