@@ -1,0 +1,28 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+  
+  config.vm.provision "shell", inline: <<-SHELL
+    echo 'TOKEN="123456:your_token"' >> /etc/environment
+    echo 'CHAT_ID="987654321"' >> /etc/environment
+    source /etc/environment
+    apt-get update && apt-get install -y fail2ban curl
+    mkdir -p /home/vagrant/.ssh
+    echo 'from="10.0.2.0/24" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN8S5... test@lab' >> /home/vagrant/.ssh/authorized_keys
+    chown -R vagrant:vagrant /home/vagrant/.ssh
+    chmod 600 /home/vagrant/.ssh/authorized_keys
+    cat <<EOF > /usr/local/bin/ssh_tg_notify.sh
+#!/bin/bash
+if [ "\\$PAM_TYPE" != "close_session" ]; then
+    HOST=\\$(hostname)
+    MSG="*SSH Alert*%0A*Server:* \\$HOST%0A*User:* \\$PAM_USER%0A*IP:* \\$PAM_RHOST"
+    curl -s -X POST "https://api.telegram.org/bot\\$TOKEN/sendMessage" \\
+         -d "chat_id=\\$CHAT_ID" -d "text=\\$MSG" -d "parse_mode=Markdown"
+fi
+EOF
+    chmod +x /usr/local/bin/ssh_tg_notify.sh
+    if ! grep -q "ssh_tg_notify.sh" /etc/pam.d/sshd; then
+      echo "session optional pam_exec.so /usr/local/bin/ssh_tg_notify.sh" >> /etc/pam.d/sshd
+    fi
+    systemctl restart ssh
+  SHELL
+end
