@@ -1,4 +1,4 @@
-This documentation provides a complete overview of the **SSH-Notify** project, designed for SysOps engineers to secure Linux servers and receive instant Telegram alerts upon SSH login.
+This documentation provides a complete overview of the **SSH-Notify** project, designed for Ops engineers to secure Linux servers and receive instant Telegram alerts upon SSH login.
 [![Alt-текст](./image/Screenshot%202025-12-29%20at%2012.44.09.png)](example)
 ## SSH Security & Telegram Notification System
 This project implements a multi-layered security approach: **Fail2Ban** for brute-force protection, **IP-restricted SSH keys**, and a **PAM-triggered** notification engine.
