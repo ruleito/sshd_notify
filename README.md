@@ -65,34 +65,31 @@ Vagrant allows you to test the entire flow (Fail2Ban, PAM, and Telegram) in a sa
     Save the following code as `Vagrantfile`. **Make sure to replace the TOKEN and CHAT_ID placeholders.**
     ```ruby
     Vagrant.configure("2") do |config|
-      config.vm.box = "ubuntu/jammy64"
-      
-      config.vm.provision "shell", inline: <<-SHELL
-        # Replace with your real credentials
-        echo 'TOKEN="12345678:ABCDEF-Example"' >> /etc/environment
-        echo 'CHAT_ID="987654321"' >> /etc/environment
-        source /etc/environment
+        config.vm.box = "ubuntu/jammy64"
+        config.vm.hostname = "sshd-notify-test"
 
-        # Install dependencies
-        apt-get update && apt-get install -y fail2ban curl
-
-        # Create the notification script
-        cat <<EOF > /usr/local/bin/ssh_tg_notify.sh
+        config.vm.provision "shell", inline: <<-SHELL
+            set -e
+            echo 'TOKEN="PUT_YOUR_BOT_TOKEN_HERE"' >> /etc/environment
+            echo 'CHAT_ID="PUT_YOUR_CHAT_ID_HERE"' >> /etc/environment
+            apt-get update
+            apt-get install -y curl
+            cat << 'EOF' > /usr/local/bin/ssh_tg_notify.sh
         #!/bin/bash
-        if [ "\\$PAM_TYPE" != "close_session" ]; then
-            HOST=\\$(hostname)
-            MSG="*Vagrant SSH Alert*%0A*Server:* \\$HOST%0A*User:* \\$PAM_USER%0A*IP:* \\$PAM_RHOST"
-            curl -s -X POST "https://api.telegram.org/bot\\$TOKEN/sendMessage" \\
-                -d "chat_id=\\$CHAT_ID" -d "text=\\$MSG" -d "parse_mode=Markdown"
+        if [ "$PAM_TYPE" != "close_session" ]; then
+            HOST=$(hostname)
+            MSG="*Vagrant SSH Alert*%0A*Server:* $HOST%0A*User:* $PAM_USER%0A*IP:* $PAM_RHOST"
+            curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" \
+                -d "chat_id=$CHAT_ID" \
+                -d "text=$MSG" \
+                -d "parse_mode=Markdown"
         fi
         EOF
-                chmod +x /usr/local/bin/ssh_tg_notify.sh
-
-        # Enable PAM hook
-        echo "session optional pam_exec.so /usr/local/bin/ssh_tg_notify.sh" >> /etc/pam.d/sshd
-        systemctl restart ssh
-      SHELL
-    end
+            chmod +x /usr/local/bin/ssh_tg_notify.sh
+            echo "session optional pam_exec.so /usr/local/bin/ssh_tg_notify.sh" >> /etc/pam.d/sshd
+            systemctl restart ssh
+        SHELL
+        end
     ```
 3.  **Launch and Test**:
     ```bash
