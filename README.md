@@ -12,7 +12,7 @@ This project implements a multi-layered security approach: **Fail2Ban** for brut
 | **Authorized Keys** | Access Control | `from="IP/MASK"` restriction per SSH key |
 
 ### System Configuration
-1.  **Environment Secrets**: Store credentials in `/etc/environment` to make them available to the PAM session.
+1.  **Environment Secrets**: Store credentials in `/etc/sshd_notify` to make them available to the PAM session.
     ```bash
     echo 'TOKEN="your_bot_token"' >> /etc/sshd_notify
     echo 'CHAT_ID="your_chat_id"' >> /etc/sshd_notify
