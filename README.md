@@ -99,36 +99,49 @@ Vagrant allows you to test the entire flow (Fail2Ban, PAM, and Telegram) in a sa
     ```
 3.  **Create the Vagrantfile**:
     Save the following code as `Vagrantfile`. **Make sure to replace the TOKEN and CHAT_ID placeholders.**
-    ```ruby
-    Vagrant.configure("2") do |config|
-        config.vm.box = "ubuntu/jammy64"
-        config.vm.hostname = "sshd-notify-test"
+```hcl
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+  config.vm.hostname = "sshd-notify-test"
 
-        config.vm.provision "shell", inline: <<-SHELL
-            set -e
-            echo 'TOKEN="PUT_YOUR_BOT_TOKEN_HERE"' >> /etc/sshd_notify
-            echo 'CHAT_ID="PUT_YOUR_CHAT_ID_HERE"' >> /etc/sshd_notify
-            chmod 600 /etc/sshd_notify && chown root:root /etc/sshd_notify
-            apt-get update
-            apt-get install -y curl
-            cat << 'EOF' > /usr/local/bin/ssh_tg_notify.sh
-        #!/bin/bash
-        [ -f /etc/sshd_notify ] && . /etc/sshd_notify
-        if [ "$PAM_TYPE" != "close_session" ]; then
-            HOST=$(hostname)
-            MSG="*Vagrant SSH Alert*%0A*Server:* $HOST%0A*User:* $PAM_USER%0A*IP:* $PAM_RHOST"
-            curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" \
-                -d "chat_id=$CHAT_ID" \
-                -d "text=$MSG" \
-                -d "parse_mode=Markdown"
-        fi
-        EOF
-            chmod +x /usr/local/bin/ssh_tg_notify.sh
-            echo "session optional pam_exec.so /usr/local/bin/ssh_tg_notify.sh" >> /etc/pam.d/sshd
-            systemctl restart ssh
-        SHELL
-        end
-    ```
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+
+    echo 'TOKEN="YOUR_TOKEN"' > /etc/sshd_notify
+    echo 'CHAT_ID="YOUR_CHAT_ID"' >> /etc/sshd_notify
+    chmod 600 /etc/sshd_notify && chown root:root /etc/sshd_notify
+    apt-get update && apt -y upgrade
+    cat > /usr/local/bin/ssh_tg_notify.sh <<'EOFSCRIPT'
+#!/bin/bash
+[ -f /etc/sshd_notify ] && . /etc/sshd_notify
+if [ "$PAM_TYPE" != "close_session" ]; then
+    HOST=$(hostname)
+    MSG="*Vagrant SSH Alert*%0A*Server:* $HOST%0A*User:* $PAM_USER%0A*IP:* $PAM_RHOST"
+    curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" \
+        -d "chat_id=$CHAT_ID" \
+        -d "text=$MSG" \
+        -d "parse_mode=Markdown"
+fi
+EOFSCRIPT
+
+    chmod +x /usr/local/bin/ssh_tg_notify.sh
+
+    echo "session optional pam_exec.so /usr/local/bin/ssh_tg_notify.sh" >> /etc/pam.d/sshd
+    apt-get -y install fail2ban
+    cat > /etc/fail2ban/jail.d/sshd.local <<'EOFSCRIPT'
+    [sshd]
+    enabled = true
+    port    = ssh
+    filter  = sshd
+    maxretry = 3        ; ban 3 lose
+    findtime = 10m      ; windows
+    bantime  = 1h       ; bantime
+    ignoreip = 127.0.0.1/8 ::1 10.0.0.0/8
+EOFSCRIPT
+    systemctl restart ssh fail2ban
+  SHELL
+end
+```
 3.  **Launch and Test**:
     ```bash
     vagrant up
