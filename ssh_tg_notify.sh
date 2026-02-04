@@ -1,4 +1,6 @@
 #!/bin/bash
+[ -f /etc/sshd_notify] && . /etc/sshd_notify
+
 if [ "$PAM_TYPE" != "close_session" ]; then
     HOST=$(hostname)
 
